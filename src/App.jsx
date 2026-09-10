@@ -59,20 +59,33 @@ export default function App() {
       }
     }
 
-    // 2. GitHub Repositories Listing Handler (Read Query)
-    if (lowerText.includes('repository') || lowerText.includes('repositories') || lowerText.includes('repos') || lowerText.includes('github list')) {
+    // 2. Follow-up "is this all?" for repositories
+    if (lowerText === 'is this all ?' || lowerText === 'is this all' || lowerText.includes('is that all') || lowerText.includes('more repos') || lowerText.includes('all repos')) {
       setTimeout(() => {
         setMessages(prev => [...prev, {
           sender: 'julee',
           time: timeStr,
-          text: `🐙 **Here are your active GitHub repositories:**\n\n• 🎯 **project-julee-ai** *(Current Control Dashboard)*\n• 🎯 **muslim-companion** *(Muslim Companion App)*\n• 📦 **kids-edu-arcade**\n• 📦 **ticket-event-system**\n• 📦 **cleaning-service-booking**\n• 📦 **ohwop**\n• 📦 **pulpenstudio**\n• 📦 **cashewPos**\n\nWhich repository would you like to work on or deploy?`
+          text: `No, you actually have **43 repositories in total** on your GitHub account (\`NazarulxFitri\`)!\n\nHere are more of your projects:\n• 📦 **cashewpos-z**\n• 📦 **nazarul-ebook-assessment**\n• 📦 **angular-assessment-nazarul**\n• 📦 **react-assessment-nazarul**\n• 📦 **covid-19-stats**\n• 📦 **DaaunFood**\n• 📦 **IT-Asset-Management**\n• 📦 **Pokedex-ReactJS**\n• 📦 **mypokedex2**\n• 📦 **nextjs-pokedex**\n• 📦 **sikenit.com**\n• 📦 **booking-hall**\n• 📦 **pac-man**\n• 📦 **tic-tac-toe**\n\n*(Total 43 repos stored in your GitHub account)*`
         }]);
         setIsThinking(false);
       }, 600);
       return;
     }
 
-    // 3. Trained Rule: "work on it" Development Trigger
+    // 3. GitHub Repositories Listing Handler (Read Query)
+    if (lowerText.includes('repository') || lowerText.includes('repositories') || lowerText.includes('repos') || lowerText.includes('github list')) {
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          sender: 'julee',
+          time: timeStr,
+          text: `🐙 **Here are your active featured GitHub repositories:**\n\n• 🎯 **project-julee-ai** *(Current Control Dashboard)*\n• 🎯 **muslim-companion** *(Muslim Companion App)*\n• 📦 **kids-edu-arcade**\n• 📦 **ticket-event-system**\n• 📦 **cleaning-service-booking**\n• 📦 **ohwop**\n• 📦 **pulpenstudio**\n• 📦 **cashewPos**\n\n*(You have 43 repos in total. Ask "is this all?" to see more!)*`
+        }]);
+        setIsThinking(false);
+      }, 600);
+      return;
+    }
+
+    // 4. Trained Rule: "work on it" Development Trigger
     if (lowerText.includes('work on it') || lowerText === 'work on it') {
       const planName = pendingDevelopmentPlan || "the requested feature";
       setTimeout(() => {
@@ -93,7 +106,7 @@ export default function App() {
 
     const isProjectSpecified = lowerText.includes('julee') || lowerText.includes('muslim') || lowerText.includes('project');
 
-    // 4. Trained Rule: Deployment Execution
+    // 5. Trained Rule: Deployment Execution
     if (pendingDeploy || (lowerText.includes('deploy') && isProjectSpecified) || (lowerText.includes('push') && isProjectSpecified)) {
       const targetRepo = lowerText.includes('muslim') ? 'NazarulxFitri/muslim-companion' : 'NazarulxFitri/project-julee-ai';
       const targetDomain = lowerText.includes('muslim') ? 'muslim-companion.vercel.app' : 'project-julee-ai.vercel.app';
@@ -117,7 +130,7 @@ export default function App() {
       return;
     }
 
-    // 5. Trained Rule: Mandatory Project Confirmation before Deploy
+    // 6. Trained Rule: Mandatory Project Confirmation before Deploy
     if (lowerText === 'deploy' || lowerText === 'push' || (lowerText.includes('deploy') && !isProjectSpecified)) {
       setTimeout(() => {
         setMessages(prev => [...prev, {
@@ -131,7 +144,7 @@ export default function App() {
       return;
     }
 
-    // 6. Trained Rules Inquiry
+    // 7. Trained Rules Inquiry
     if (lowerText.includes('rule') || lowerText.includes('trained') || lowerText.includes('training')) {
       setTimeout(() => {
         let rulesMsg = `Here are the exact behavioral rules you have trained me to follow:\n\n1. 🛑 **No Unsolicited Pushes**: I keep code changes local until you explicitly ask me to push or deploy.\n2. 🎯 **Mandatory Project Confirmation**: When you say 'deploy', I MUST ask you to confirm whether you want to target \`project-julee-ai\` or \`muslim-companion\`.\n3. ⚡ **Strict 5-Step Deployment Pipeline**: When confirmed, I run: \`build\` ➔ \`lint\` ➔ \`git add\` ➔ \`git commit\` ➔ \`git push\` ➔ \`Vercel deploy\`.\n4. 🛠️ **Plan-First Approval ("work on it")**: When you ask me to build a feature, I explain the plan first and ONLY start code development after you say 'work on it'.\n5. ☁️ **24/7 Cloud Engine**: Operates continuously even when your laptop is turned off.\n6. 🎓 **In-Chat Training**: You can type \`rule: <new rule>\` directly in chat to add new rules anytime!`;
@@ -150,7 +163,7 @@ export default function App() {
       return;
     }
 
-    // 7. Running / Active Status Inquiry
+    // 8. Running / Active Status Inquiry
     if (lowerText.includes('running') || lowerText.includes('doing') || lowerText.includes('run anything')) {
       setTimeout(() => {
         setMessages(prev => [...prev, {
@@ -163,7 +176,7 @@ export default function App() {
       return;
     }
 
-    // 8. Feature Request / Code Modification Requests (Triggers Plan-First Approval)
+    // 9. Feature Request / Code Modification Requests (Triggers Plan-First Approval)
     if (lowerText.includes('create a') || lowerText.includes('add a') || lowerText.includes('build a') || lowerText.includes('make a') || lowerText.includes('new feature')) {
       setPendingDevelopmentPlan(text);
       setTimeout(() => {
@@ -177,7 +190,7 @@ export default function App() {
       return;
     }
 
-    // 9. Dynamic Gemini API Call for General Questions
+    // 10. Dynamic Gemini API Call for General Questions
     try {
       if (builtInGeminiKey) {
         const ai = new GoogleGenAI({ apiKey: builtInGeminiKey });
