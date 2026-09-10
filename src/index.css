@@ -144,16 +144,3 @@ body {
 .animate-fade-in {
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-
-/* Mobile responsive breakpoints */
-@media (max-width: 768px) {
-  .app-sidebar {
-    display: none !important;
-  }
-  .mobile-bottom-nav {
-    display: flex !important;
-  }
-  main {
-    padding-bottom: 60px !important;
-  }
-}

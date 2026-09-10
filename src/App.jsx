@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
-import BottomNav from './components/BottomNav';
 import ChatView from './components/ChatView';
-import TerminalView from './components/TerminalView';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('chat');
   const [isThinking, setIsThinking] = useState(false);
   const [pendingDeploy, setPendingDeploy] = useState(false);
 
@@ -28,14 +25,6 @@ export default function App() {
     }
   ]);
 
-  // Terminal Logs state
-  const [logs, setLogs] = useState([
-    { timestamp: '21:28:10', category: 'SYSTEM', message: 'Julee Cloud Engine initialized on node vps-us-east (Engine: Gemini 3.6 Flash Medium).' },
-    { timestamp: '21:28:12', category: 'GIT', message: 'Authenticated with GitHub PAT for repo NazarulxFitri/project-julee-ai.' },
-    { timestamp: '21:28:15', category: 'VERCEL', message: 'Vercel Deployment API connected. Production domain: project-julee-ai.vercel.app.' },
-    { timestamp: '21:29:01', category: 'AGENT', message: 'Project Confirmation Rule active. Will prompt user before any push or deploy.' }
-  ]);
-
   const handleSendMessage = (text) => {
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const lowerText = text.toLowerCase().trim();
@@ -50,8 +39,6 @@ export default function App() {
       let replyText = '';
       let codeSnippet = null;
       let actionCard = null;
-      let newLogCategory = 'AGENT';
-      let newLogMsg = '';
 
       const taskId = `TASK-${Math.floor(1000 + Math.random() * 9000)}`;
 
@@ -69,43 +56,24 @@ export default function App() {
           detail: 'Passed: Build ➔ Lint ➔ Add ➔ Commit ➔ Push ➔ Vercel Live',
           url: `https://${targetDomain}`
         };
-        newLogCategory = 'VERCEL';
-        newLogMsg = `Confirmed target project ${targetRepo}. Executed build ➔ lint ➔ add ➔ commit ➔ push ➔ Vercel deploy. Status: 200 OK.`;
         setPendingDeploy(false);
 
       } else if (lowerText === 'deploy' || lowerText === 'push' || lowerText.includes('deploy') || lowerText.includes('push')) {
         replyText = `Which project would you like me to deploy?\n\n1. 🎯 **project-julee-ai** (Julee Control Dashboard)\n2. 🎯 **muslim-companion** (Muslim Companion App)\n\nReply with the project name to confirm execution!`;
-        newLogCategory = 'AGENT';
-        newLogMsg = `Prompted user for target project confirmation before deployment.`;
         setPendingDeploy(true);
 
       } else if (lowerText.includes('name') || lowerText.includes('who are you') || lowerText.includes('who r u')) {
         replyText = "My name is Julee! ⚡ I'm your autonomous 24/7 AI partner built to assist you with your day-to-day routine, project development, and strict deployment pipelines with project confirmation safeguards.";
-        newLogCategory = 'AGENT';
-        newLogMsg = `Answered identity question.`;
 
       } else if (lowerText.includes('status') || lowerText.includes('uptime') || lowerText.includes('health')) {
         replyText = `System Health Report: Julee 24/7 Cloud Runner is active and operating with 99.99% uptime on Gemini 3.6 Flash (Medium). Memory usage: 42MB. Confirmation Safeguards enabled.`;
-        newLogCategory = 'SYSTEM';
-        newLogMsg = `Performed 24/7 cloud health check. System operating normally.`;
 
       } else if (lowerText.includes('hi') || lowerText.includes('hello') || lowerText.includes('hey') || lowerText.includes('talk')) {
         replyText = `Hey there! 😊 I'm right here with you. Tell me what project you'd like to work on, or say 'deploy' when you're ready!`;
-        newLogCategory = 'AGENT';
-        newLogMsg = `Replied conversationally to greeting.`;
 
       } else {
         replyText = `I hear you! I've noted: "${text}". Changes remain local. Say 'deploy' whenever you're ready, and I'll ask you which project to target!`;
-        newLogCategory = 'AGENT';
-        newLogMsg = `Processed note: "${text}". Kept changes local.`;
       }
-
-      // Append terminal log
-      setLogs(prev => [...prev, {
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        category: newLogCategory,
-        message: newLogMsg
-      }]);
 
       // Append Julee reply
       setMessages(prev => [...prev, {
@@ -121,50 +89,19 @@ export default function App() {
     }, 900);
   };
 
-  const handleClearLogs = () => {
-    setLogs([]);
-  };
-
-  const handleRunDiagnostic = () => {
-    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    setLogs(prev => [
-      ...prev,
-      { timestamp: timeStr, category: 'SYSTEM', message: 'Running comprehensive diagnostic check...' },
-      { timestamp: timeStr, category: 'GIT', message: 'GitHub connection ping: 34ms (OK)' },
-      { timestamp: timeStr, category: 'VERCEL', message: 'Vercel API ping: 22ms (OK)' },
-      { timestamp: timeStr, category: 'AGENT', message: 'All systems operational. Cloud worker ready.' }
-    ]);
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg-dark)' }}>
       {/* Top Header */}
       <Header />
 
-      {/* Main View Area */}
-      <main style={{ flex: 1, overflowY: 'auto', paddingBottom: '64px' }}>
-        {activeTab === 'chat' && (
-          <ChatView
-            messages={messages}
-            onSendMessage={handleSendMessage}
-            isThinking={isThinking}
-          />
-        )}
-
-        {activeTab === 'terminal' && (
-          <TerminalView
-            logs={logs}
-            onClearLogs={handleClearLogs}
-            onRunDiagnostic={handleRunDiagnostic}
-          />
-        )}
+      {/* Pure Chat Interface */}
+      <main style={{ flex: 1, overflowY: 'auto' }}>
+        <ChatView
+          messages={messages}
+          onSendMessage={handleSendMessage}
+          isThinking={isThinking}
+        />
       </main>
-
-      {/* Bottom Navigation */}
-      <BottomNav
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
     </div>
   );
 }
