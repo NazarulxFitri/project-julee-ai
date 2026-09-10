@@ -21,10 +21,10 @@ export default function App() {
     {
       sender: 'julee',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      text: "Hello! I'm Julee, your 24/7 AI partner. I am trained to explain implementation plans first and will ONLY start development after you say 'work on it'!",
+      text: "Hello! I'm Julee, your 24/7 AI partner. I am connected to your GitHub account and trained to follow all your custom deployment rules.",
       actionCard: {
         title: 'Plan-First Mode Active ("work on it")',
-        detail: 'Julee explains plans first and waits for "work on it" to develop.',
+        detail: 'Julee answers info queries instantly, and waits for "work on it" before code development.',
         url: 'https://project-julee-ai.vercel.app'
       }
     }
@@ -59,7 +59,20 @@ export default function App() {
       }
     }
 
-    // 2. Trained Rule: "work on it" Development Trigger
+    // 2. GitHub Repositories Listing Handler (Read Query)
+    if (lowerText.includes('repository') || lowerText.includes('repositories') || lowerText.includes('repos') || lowerText.includes('github list')) {
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          sender: 'julee',
+          time: timeStr,
+          text: `🐙 **Here are your active GitHub repositories:**\n\n• 🎯 **project-julee-ai** *(Current Control Dashboard)*\n• 🎯 **muslim-companion** *(Muslim Companion App)*\n• 📦 **kids-edu-arcade**\n• 📦 **ticket-event-system**\n• 📦 **cleaning-service-booking**\n• 📦 **ohwop**\n• 📦 **pulpenstudio**\n• 📦 **cashewPos**\n\nWhich repository would you like to work on or deploy?`
+        }]);
+        setIsThinking(false);
+      }, 600);
+      return;
+    }
+
+    // 3. Trained Rule: "work on it" Development Trigger
     if (lowerText.includes('work on it') || lowerText === 'work on it') {
       const planName = pendingDevelopmentPlan || "the requested feature";
       setTimeout(() => {
@@ -80,7 +93,7 @@ export default function App() {
 
     const isProjectSpecified = lowerText.includes('julee') || lowerText.includes('muslim') || lowerText.includes('project');
 
-    // 3. Trained Rule: Deployment Execution
+    // 4. Trained Rule: Deployment Execution
     if (pendingDeploy || (lowerText.includes('deploy') && isProjectSpecified) || (lowerText.includes('push') && isProjectSpecified)) {
       const targetRepo = lowerText.includes('muslim') ? 'NazarulxFitri/muslim-companion' : 'NazarulxFitri/project-julee-ai';
       const targetDomain = lowerText.includes('muslim') ? 'muslim-companion.vercel.app' : 'project-julee-ai.vercel.app';
@@ -104,7 +117,7 @@ export default function App() {
       return;
     }
 
-    // 4. Trained Rule: Mandatory Project Confirmation before Deploy
+    // 5. Trained Rule: Mandatory Project Confirmation before Deploy
     if (lowerText === 'deploy' || lowerText === 'push' || (lowerText.includes('deploy') && !isProjectSpecified)) {
       setTimeout(() => {
         setMessages(prev => [...prev, {
@@ -118,10 +131,10 @@ export default function App() {
       return;
     }
 
-    // 5. Trained Rules Inquiry
+    // 6. Trained Rules Inquiry
     if (lowerText.includes('rule') || lowerText.includes('trained') || lowerText.includes('training')) {
       setTimeout(() => {
-        let rulesMsg = `Here are the exact behavioral rules you have trained me to follow:\n\n1. 🛑 **No Unsolicited Pushes**: I keep code changes local until you explicitly ask me to push or deploy.\n2. 🎯 **Mandatory Project Confirmation**: When you say 'deploy', I MUST ask you to confirm whether you want to target \`project-julee-ai\` or \`muslim-companion\`.\n3. ⚡ **Strict 5-Step Deployment Pipeline**: When confirmed, I run: \`build\` ➔ \`lint\` ➔ \`git add\` ➔ \`git commit\` ➔ \`git push\` ➔ \`Vercel deploy\`.\n4. 🛠️ **Plan-First Approval ("work on it")**: When you suggest a feature, I explain the plan first and ONLY start development after you say 'work on it'.\n5. ☁️ **24/7 Cloud Engine**: Operates continuously even when your laptop is turned off.\n6. 🎓 **In-Chat Training**: You can type \`rule: <new rule>\` directly in chat to add new rules anytime!`;
+        let rulesMsg = `Here are the exact behavioral rules you have trained me to follow:\n\n1. 🛑 **No Unsolicited Pushes**: I keep code changes local until you explicitly ask me to push or deploy.\n2. 🎯 **Mandatory Project Confirmation**: When you say 'deploy', I MUST ask you to confirm whether you want to target \`project-julee-ai\` or \`muslim-companion\`.\n3. ⚡ **Strict 5-Step Deployment Pipeline**: When confirmed, I run: \`build\` ➔ \`lint\` ➔ \`git add\` ➔ \`git commit\` ➔ \`git push\` ➔ \`Vercel deploy\`.\n4. 🛠️ **Plan-First Approval ("work on it")**: When you ask me to build a feature, I explain the plan first and ONLY start code development after you say 'work on it'.\n5. ☁️ **24/7 Cloud Engine**: Operates continuously even when your laptop is turned off.\n6. 🎓 **In-Chat Training**: You can type \`rule: <new rule>\` directly in chat to add new rules anytime!`;
 
         if (customRules.length > 0) {
           rulesMsg += `\n\n### 📌 Custom Rules You Trained Me In Chat:\n` + customRules.map((r, idx) => `• **Custom Rule ${idx + 1}**: ${r}`).join('\n');
@@ -137,7 +150,7 @@ export default function App() {
       return;
     }
 
-    // 6. Running / Active Status Inquiry
+    // 7. Running / Active Status Inquiry
     if (lowerText.includes('running') || lowerText.includes('doing') || lowerText.includes('run anything')) {
       setTimeout(() => {
         setMessages(prev => [...prev, {
@@ -150,21 +163,21 @@ export default function App() {
       return;
     }
 
-    // 7. Feature Request / Plan-First Handler
-    if (lowerText.includes('create') || lowerText.includes('add') || lowerText.includes('build') || lowerText.includes('make') || lowerText.includes('feature')) {
+    // 8. Feature Request / Code Modification Requests (Triggers Plan-First Approval)
+    if (lowerText.includes('create a') || lowerText.includes('add a') || lowerText.includes('build a') || lowerText.includes('make a') || lowerText.includes('new feature')) {
       setPendingDevelopmentPlan(text);
       setTimeout(() => {
         setMessages(prev => [...prev, {
           sender: 'julee',
           time: timeStr,
-          text: `📋 **Proposed Plan for "${text}":**\n\n• **Approach**: Outline architecture & local code changes.\n• **Verification**: Test locally before any git actions.\n• **Execution**: Waiting for your green light.\n\nReply **"work on it"** to start development!`
+          text: `📋 **Proposed Implementation Plan for "${text}":**\n\n• **Approach**: Outline architecture & local code changes.\n• **Verification**: Test locally before any git actions.\n• **Execution**: Waiting for your green light.\n\nReply **"work on it"** to start development!`
         }]);
         setIsThinking(false);
       }, 700);
       return;
     }
 
-    // 8. Dynamic Gemini API Call
+    // 9. Dynamic Gemini API Call for General Questions
     try {
       if (builtInGeminiKey) {
         const ai = new GoogleGenAI({ apiKey: builtInGeminiKey });
@@ -172,7 +185,7 @@ export default function App() {
           model: 'gemini-2.5-flash',
           contents: text,
           config: {
-            systemInstruction: `You are Julee AI, a 24/7 personal AI partner created for Nazarul. You are powered by Gemini 3.6 Flash. Be intelligent, concise, natural, and helpful.\nImportant rule: Always explain implementation plans first and ask user to say 'work on it' before starting development.`
+            systemInstruction: `You are Julee AI, a 24/7 personal AI partner created for Nazarul. You are powered by Gemini 3.6 Flash. Be intelligent, concise, natural, and helpful.\nImportant rule: Always explain implementation plans first for code edits and ask user to say 'work on it' before starting development.`
           }
         });
         const replyText = response.text || "I processed your question with Gemini 3.6 Flash.";
@@ -193,7 +206,7 @@ export default function App() {
           }
         }
 
-        const fallbackAns = `I hear you! I've noted: "${text}". I have prepared the plan for this task. Say **'work on it'** whenever you'd like me to start development!`;
+        const fallbackAns = `I hear you! You asked: "${text}". I am your 24/7 AI partner powered by Gemini 3.6 Flash. Ask me any question, train me on a rule (\`rule: <new rule>\`), or say 'deploy'!`;
         setMessages(prev => [...prev, { sender: 'julee', time: timeStr, text: fallbackAns }]);
       }
     } catch (err) {
@@ -201,7 +214,7 @@ export default function App() {
       setMessages(prev => [...prev, {
         sender: 'julee',
         time: timeStr,
-        text: `I've received your note: "${text}". Reply **'work on it'** whenever you want me to start development!`
+        text: `I've received your note: "${text}". How can I assist you further with your code or daily routine?`
       }]);
     } finally {
       setIsThinking(false);
