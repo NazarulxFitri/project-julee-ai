@@ -9,12 +9,12 @@ export default function Header() {
       backdropFilter: 'blur(16px)',
       display: 'flex',
       alignItems: 'center',
-      padding: '0 16px',
+      padding: '0 20px',
       position: 'sticky',
       top: 0,
       zIndex: 30
     }}>
-      {/* Simple Brand Title & Online Dot */}
+      {/* Clean Brand Title & Online Dot */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span>Julee AI</span>
@@ -24,3 +24,5 @@ export default function Header() {
     </header>
   );
 }
+
+
