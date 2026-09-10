@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 import ChatView from './components/ChatView';
@@ -138,37 +137,30 @@ export default function App() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-      {/* Sidebar (Desktop) */}
-      <Sidebar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg-dark)' }}>
+      {/* Top Header */}
+      <Header />
 
-      {/* Main Content Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Header />
+      {/* Main View Area */}
+      <main style={{ flex: 1, overflowY: 'auto', paddingBottom: '64px' }}>
+        {activeTab === 'chat' && (
+          <ChatView
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            isThinking={isThinking}
+          />
+        )}
 
-        <main style={{ flex: 1, overflowY: 'auto' }}>
-          {activeTab === 'chat' && (
-            <ChatView
-              messages={messages}
-              onSendMessage={handleSendMessage}
-              isThinking={isThinking}
-            />
-          )}
+        {activeTab === 'terminal' && (
+          <TerminalView
+            logs={logs}
+            onClearLogs={handleClearLogs}
+            onRunDiagnostic={handleRunDiagnostic}
+          />
+        )}
+      </main>
 
-          {activeTab === 'terminal' && (
-            <TerminalView
-              logs={logs}
-              onClearLogs={handleClearLogs}
-              onRunDiagnostic={handleRunDiagnostic}
-            />
-          )}
-        </main>
-      </div>
-
-      {/* Bottom Navigation (Mobile) */}
+      {/* Bottom Navigation */}
       <BottomNav
         activeTab={activeTab}
         setActiveTab={setActiveTab}

@@ -3,7 +3,7 @@ import { MessageSquare, Terminal } from 'lucide-react';
 
 export default function BottomNav({ activeTab, setActiveTab }) {
   return (
-    <div className="mobile-bottom-nav" style={{
+    <nav style={{
       position: 'fixed',
       bottom: 0,
       left: 0,
@@ -12,11 +12,13 @@ export default function BottomNav({ activeTab, setActiveTab }) {
       background: 'rgba(9, 13, 22, 0.95)',
       backdropFilter: 'blur(20px)',
       borderTop: '1px solid var(--border-glass)',
-      display: 'none', // Mobile media query turns this to flex
+      display: 'flex',
       alignItems: 'center',
       justify: 'space-around',
       zIndex: 40,
-      padding: '0 12px'
+      padding: '0 16px',
+      maxWidth: '600px',
+      margin: '0 auto'
     }}>
       <button
         onClick={() => setActiveTab('chat')}
@@ -33,7 +35,8 @@ export default function BottomNav({ activeTab, setActiveTab }) {
           gap: '4px',
           fontSize: '0.75rem',
           fontWeight: activeTab === 'chat' ? 600 : 400,
-          cursor: 'pointer'
+          cursor: 'pointer',
+          transition: 'all 0.2s ease'
         }}
       >
         <MessageSquare size={18} style={{ display: 'block' }} />
@@ -55,12 +58,13 @@ export default function BottomNav({ activeTab, setActiveTab }) {
           gap: '4px',
           fontSize: '0.75rem',
           fontWeight: activeTab === 'terminal' ? 600 : 400,
-          cursor: 'pointer'
+          cursor: 'pointer',
+          transition: 'all 0.2s ease'
         }}
       >
         <Terminal size={18} style={{ display: 'block' }} />
         <span>Logs</span>
       </button>
-    </div>
+    </nav>
   );
 }
