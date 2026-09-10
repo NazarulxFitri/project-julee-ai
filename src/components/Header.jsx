@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, Terminal, Zap } from 'lucide-react';
+import { MessageSquare, Terminal } from 'lucide-react';
 
 export default function Header({ activeTab, setActiveTab }) {
   return (
@@ -16,26 +16,11 @@ export default function Header({ activeTab, setActiveTab }) {
       top: 0,
       zIndex: 30
     }}>
-      {/* Simple Brand Title & Online Dot */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <div style={{
-          width: '32px',
-          height: '32px',
-          borderRadius: '10px',
-          background: 'linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-cyan) 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justify: 'center',
-          boxShadow: 'var(--shadow-glow-purple)',
-          flexShrink: 0
-        }}>
-          <Zap size={18} color="#ffffff" style={{ display: 'block' }} />
-        </div>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: '1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span>Julee AI</span>
-            <div className="status-dot online" style={{ width: '7px', height: '7px' }} />
-          </div>
+      {/* Simple Brand Title & Online Dot (Logo box removed) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ fontWeight: 700, fontSize: '1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>Julee AI</span>
+          <div className="status-dot online" style={{ width: '7px', height: '7px' }} />
         </div>
       </div>
 

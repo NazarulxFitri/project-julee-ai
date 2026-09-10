@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, Terminal, Zap, ShieldCheck } from 'lucide-react';
+import { MessageSquare, Terminal, ShieldCheck } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
   const navItems = [
@@ -23,46 +23,18 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       zIndex: 20
     }}>
       <div>
-        {/* Brand Header */}
+        {/* Brand Header (Logo box removed) */}
         <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '0 8px 20px 8px',
+          padding: '0 8px 16px 8px',
           borderBottom: '1px solid var(--border-glass)',
           marginBottom: '20px'
         }}>
-          <div style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-cyan) 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justify: 'center',
-            boxShadow: 'var(--shadow-glow-purple)',
-            position: 'relative',
-            flexShrink: 0
-          }}>
-            <Zap size={20} color="#ffffff" style={{ display: 'block' }} />
-            <div style={{
-              position: 'absolute',
-              bottom: '-2px',
-              right: '-2px',
-              width: '9px',
-              height: '9px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--primary-emerald)',
-              border: '2px solid #07090e'
-            }} />
+          <div style={{ fontWeight: 700, fontSize: '1.1rem', letterSpacing: '-0.02em', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>Julee AI</span>
+            <div className="status-dot online" style={{ width: '7px', height: '7px' }} />
           </div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.02em', color: '#fff' }}>
-              Julee AI
-            </div>
-            <div style={{ fontSize: '0.725rem', color: 'var(--primary-cyan)', fontWeight: 500 }}>
-              24/7 AI Partner
-            </div>
+          <div style={{ fontSize: '0.725rem', color: 'var(--primary-cyan)', fontWeight: 500, marginTop: '2px' }}>
+            24/7 AI Partner
           </div>
         </div>
 
