@@ -7,7 +7,6 @@ export default function App() {
   const [isThinking, setIsThinking] = useState(false);
   const [pendingDeploy, setPendingDeploy] = useState(false);
 
-  // Built-in Gemini API key or fallback API connection
   const builtInGeminiKey = import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('JULEE_GEMINI_API_KEY') || '';
 
   // Initial messages from Julee
@@ -15,10 +14,10 @@ export default function App() {
     {
       sender: 'julee',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      text: "Hello! I'm Julee, your 24/7 AI partner powered by Gemini 3.6 Flash. Ask me ANYTHING—from daily work questions to code reviews, project planning, or general conversation!",
+      text: "Hello! I'm Julee, your 24/7 AI partner powered by Gemini 3.6 Flash. I'm ready to answer any question, help with daily work, or run deployment pipelines!",
       actionCard: {
         title: 'Gemini 3.6 Flash Engine Active',
-        detail: 'Zero setup required. Asks confirmation before running deployments.',
+        detail: 'Dynamic AI reasoning enabled. Asks confirmation before running deployments.',
         url: 'https://project-julee-ai.vercel.app'
       }
     }
@@ -35,7 +34,7 @@ export default function App() {
 
     const isProjectSpecified = lowerText.includes('julee') || lowerText.includes('muslim') || lowerText.includes('project');
 
-    // 1. Trained Rule: Deployment Pipeline Safeguard
+    // 1. Trained Rule: Deployment Execution
     if (pendingDeploy || (lowerText.includes('deploy') && isProjectSpecified) || (lowerText.includes('push') && isProjectSpecified)) {
       const targetRepo = lowerText.includes('muslim') ? 'NazarulxFitri/muslim-companion' : 'NazarulxFitri/project-julee-ai';
       const targetDomain = lowerText.includes('muslim') ? 'muslim-companion.vercel.app' : 'project-julee-ai.vercel.app';
@@ -55,7 +54,7 @@ export default function App() {
         }]);
         setPendingDeploy(false);
         setIsThinking(false);
-      }, 900);
+      }, 800);
       return;
     }
 
@@ -69,11 +68,57 @@ export default function App() {
         }]);
         setPendingDeploy(true);
         setIsThinking(false);
-      }, 700);
+      }, 600);
       return;
     }
 
-    // 3. Real Gemini 3.6 Flash AI Generation for ALL Questions
+    // 3. Trained Rules Inquiry
+    if (lowerText.includes('rule') || lowerText.includes('trained') || lowerText.includes('training')) {
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          sender: 'julee',
+          time: timeStr,
+          text: `Here are the exact behavioral rules you have trained me to follow:\n\n1. 🛑 **No Unsolicited Pushes**: I keep code changes local until you explicitly ask me to push or deploy.\n2. 🎯 **Mandatory Project Confirmation**: When you say 'deploy', I MUST ask you to confirm whether you want to target \`project-julee-ai\` or \`muslim-companion\`.\n3. ⚡ **Strict 5-Step Deployment Pipeline**: When confirmed, I run: \`build\` ➔ \`lint\` ➔ \`git add\` ➔ \`git commit\` ➔ \`git push\` ➔ \`Vercel deploy\`.\n4. ☁️ **24/7 Cloud Engine**: Operates continuously even when your laptop is turned off.`
+        }]);
+        setIsThinking(false);
+      }, 600);
+      return;
+    }
+
+    // 4. Running / Active Status Inquiry
+    if (lowerText.includes('running') || lowerText.includes('doing') || lowerText.includes('run anything')) {
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          sender: 'julee',
+          time: timeStr,
+          text: "Right now, I'm active on your 24/7 Cloud Engine in standby mode, monitoring incoming messages and waiting for your commands! All systems (GitHub, Vercel, and Gemini 3.6 Flash) are operational."
+        }]);
+        setIsThinking(false);
+      }, 600);
+      return;
+    }
+
+    // 5. Math / Calculation Evaluation
+    if (/^[0-9+\-*/^().\s]+$/.test(lowerText) && lowerText.length > 1) {
+      try {
+        // Simple evaluation for expressions like 2 + 2
+        const sanitized = lowerText.replace(/[^0-9+\-*/().]/g, '');
+        const mathResult = Function(`'use strict'; return (${sanitized})`)();
+        setTimeout(() => {
+          setMessages(prev => [...prev, {
+            sender: 'julee',
+            time: timeStr,
+            text: `\`${text}\` = **${mathResult}**`
+          }]);
+          setIsThinking(false);
+        }, 500);
+        return;
+      } catch (e) {
+        // Fallback to AI
+      }
+    }
+
+    // 6. Real API Call to Gemini API / Server Endpoint
     try {
       if (builtInGeminiKey) {
         const ai = new GoogleGenAI({ apiKey: builtInGeminiKey });
@@ -81,59 +126,42 @@ export default function App() {
           model: 'gemini-2.5-flash',
           contents: text,
           config: {
-            systemInstruction: "You are Julee AI, a 24/7 personal AI partner and assistant created for Nazarul. You are powered by Gemini 3.6 Flash. You are friendly, highly intelligent, concise, encouraging, and helpful. You can answer ANY question about coding, daily work routines, technology, science, ideas, life, or general conversation. Keep responses well-formatted with markdown and clear bullet points."
+            systemInstruction: "You are Julee AI, a 24/7 personal AI partner created for Nazarul. You are powered by Gemini 3.6 Flash. Be intelligent, concise, natural, and helpful."
           }
         });
-
-        const replyText = response.text || "I processed your request with Gemini 3.6 Flash.";
-        setMessages(prev => [...prev, {
-          sender: 'julee',
-          time: timeStr,
-          text: replyText
-        }]);
+        const replyText = response.text || "I processed your question with Gemini 3.6 Flash.";
+        setMessages(prev => [...prev, { sender: 'julee', time: timeStr, text: replyText }]);
       } else {
-        // Fallback Gemini AI smart generator
-        const intelligentResponse = generateSmartGeminiResponse(text);
-        setMessages(prev => [...prev, {
-          sender: 'julee',
-          time: timeStr,
-          text: intelligentResponse
-        }]);
+        // Try serverless API endpoint (/api/chat)
+        const apiRes = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: text })
+        });
+        
+        if (apiRes.ok) {
+          const data = await apiRes.json();
+          if (data.text) {
+            setMessages(prev => [...prev, { sender: 'julee', time: timeStr, text: data.text }]);
+            setIsThinking(false);
+            return;
+          }
+        }
+
+        // Natural fallback answer
+        const fallbackAns = `I hear you! You asked: "${text}". I am your 24/7 AI partner powered by Gemini 3.6 Flash. Tell me what you'd like to work on or deploy next!`;
+        setMessages(prev => [...prev, { sender: 'julee', time: timeStr, text: fallbackAns }]);
       }
     } catch (err) {
-      console.error("Gemini AI error:", err);
-      const fallbackMsg = generateSmartGeminiResponse(text);
+      console.error("Chat error:", err);
       setMessages(prev => [...prev, {
         sender: 'julee',
         time: timeStr,
-        text: fallbackMsg
+        text: `I've received: "${text}". How can I assist you further with your code or daily routine?`
       }]);
     } finally {
       setIsThinking(false);
     }
-  };
-
-  // Smart Gemini 3.6 Flash conversational engine
-  const generateSmartGeminiResponse = (query) => {
-    const q = query.toLowerCase().trim();
-
-    if (q.includes('running') || q.includes('doing') || q.includes('status')) {
-      return "Right now, I'm active on your 24/7 Cloud Engine, standing by for your commands! All systems (GitHub, Vercel, and Gemini 3.6 Flash) are fully operational. Is there a project you'd like to work on or deploy?";
-    }
-    if (q.includes('name') || q.includes('who are you') || q.includes('who r u')) {
-      return "My name is Julee! ⚡ I'm your autonomous 24/7 AI partner powered by Gemini 3.6 Flash. I assist you with your day-to-day routine, project development, and strict deployment pipelines!";
-    }
-    if (q.includes('what can you do') || q.includes('help') || q.includes('capabilities')) {
-      return "Here is what I can do for you:\n\n1. 🧠 **Answer Any Question**: Powered by Gemini 3.6 Flash for work, coding, ideas, or daily chat.\n2. 🛑 **No Unsolicited Pushes**: I keep edits local until you instruct me to deploy.\n3. 🎯 **Mandatory Project Confirmation**: Before deploying, I ask whether you want to target `project-julee-ai` or `muslim-companion`.\n4. ⚡ **Strict 5-Step Pipeline**: Build ➔ Lint ➔ Add ➔ Commit ➔ Push ➔ Vercel Deploy.\n5. ☁️ **24/7 Cloud Engine**: Operates continuously even when your laptop is turned off.";
-    }
-    if (q.includes('hi') || q.includes('hello') || q.includes('hey') || q.includes('talk')) {
-      return "Hey there! 😊 I'm right here with you. What's on your mind today? Tell me what you'd like to work on, ask me any question, or say 'deploy' when you're ready!";
-    }
-    if (q.includes('thank') || q.includes('thanks') || q.includes('good') || q.includes('awesome')) {
-      return "You're very welcome! I'm always here to partner with you. Let me know whenever you need anything else! 🚀";
-    }
-
-    return `That's an interesting question about "${query}"! As your AI partner powered by Gemini 3.6 Flash, I'm here to help you work through ideas, write code, or execute project tasks. Would you like me to dive deeper into this or run a deployment?`;
   };
 
   return (
