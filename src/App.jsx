@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+import BottomNav from './components/BottomNav';
 import ChatView from './components/ChatView';
 import TerminalView from './components/TerminalView';
 
@@ -8,11 +9,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('chat');
   const [isThinking, setIsThinking] = useState(false);
   const [pendingDeploy, setPendingDeploy] = useState(false);
-
-  const connectedIntegrations = {
-    github: true,
-    vercel: true
-  };
 
   // Initial messages from Julee
   const [messages, setMessages] = useState([
@@ -143,7 +139,7 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-      {/* Sidebar */}
+      {/* Sidebar (Desktop) */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -151,9 +147,7 @@ export default function App() {
 
       {/* Main Content Area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Header
-          connectedIntegrations={connectedIntegrations}
-        />
+        <Header />
 
         <main style={{ flex: 1, overflowY: 'auto' }}>
           {activeTab === 'chat' && (
@@ -173,6 +167,12 @@ export default function App() {
           )}
         </main>
       </div>
+
+      {/* Bottom Navigation (Mobile) */}
+      <BottomNav
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
     </div>
   );
 }

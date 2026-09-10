@@ -150,4 +150,10 @@ body {
   .app-sidebar {
     display: none !important;
   }
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+  main {
+    padding-bottom: 60px !important;
+  }
 }
