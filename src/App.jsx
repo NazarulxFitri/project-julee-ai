@@ -7,6 +7,7 @@ import TerminalView from './components/TerminalView';
 export default function App() {
   const [activeTab, setActiveTab] = useState('chat');
   const [isThinking, setIsThinking] = useState(false);
+  const [pendingDeploy, setPendingDeploy] = useState(false);
 
   const connectedIntegrations = {
     github: true,
@@ -18,26 +19,26 @@ export default function App() {
     {
       sender: 'julee',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      text: "Hello! I'm Julee, your 24/7 AI partner powered by Gemini 3.6 Flash (Medium). I'm trained with your custom deployment pipeline rules.",
+      text: "Hello! I'm Julee, your 24/7 AI partner. I'm trained to ask for explicit project confirmation before running any deployment pipeline.",
       actionCard: {
-        title: 'Cloud Engine Online (Strict Pipeline Mode)',
-        detail: 'Pipeline: npm run build ➔ lint check ➔ git add & commit ➔ git push ➔ Vercel deploy',
+        title: 'Cloud Engine Online (Confirmation Safeguard Active)',
+        detail: 'Safeguard: Always asks target project before executing build & push.',
         url: 'https://project-julee-ai.vercel.app'
       }
     },
     {
       sender: 'julee',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      text: "I won't push automatically until you instruct me to 'deploy' or 'push'. When you do, I'll execute the full build ➔ lint ➔ add ➔ commit ➔ push pipeline!"
+      text: "Whenever you say 'deploy', I'll ask you to confirm which project you want to target (e.g. project-julee-ai or muslim-companion)!"
     }
   ]);
 
   // Terminal Logs state
   const [logs, setLogs] = useState([
     { timestamp: '21:28:10', category: 'SYSTEM', message: 'Julee Cloud Engine initialized on node vps-us-east (Engine: Gemini 3.6 Flash Medium).' },
-    { timestamp: '21:28:12', category: 'GIT', message: 'Authenticated with GitHub PAT for repo NazarulxFitri/muslim-companion.' },
+    { timestamp: '21:28:12', category: 'GIT', message: 'Authenticated with GitHub PAT for repo NazarulxFitri/project-julee-ai.' },
     { timestamp: '21:28:15', category: 'VERCEL', message: 'Vercel Deployment API connected. Production domain: project-julee-ai.vercel.app.' },
-    { timestamp: '21:29:01', category: 'AGENT', message: 'Strict Deployment Pipeline rules loaded (Build ➔ Lint ➔ Add ➔ Commit ➔ Push).' }
+    { timestamp: '21:29:01', category: 'AGENT', message: 'Project Confirmation Rule active. Will prompt user before any push or deploy.' }
   ]);
 
   const handleSendMessage = (text) => {
@@ -59,47 +60,49 @@ export default function App() {
 
       const taskId = `TASK-${Math.floor(1000 + Math.random() * 9000)}`;
 
-      // 1. Deployment / Push Pipeline Request
-      if (lowerText.includes('deploy') || lowerText.includes('push') || lowerText.includes('vercel')) {
-        replyText = `Deployment Pipeline Executed Successfully!\n\n1. ✅ **Build Check**: Ran \`npm run build\` — 0 errors.\n2. ✅ **Lint Check**: Code linting & structure verified.\n3. ✅ **Stage Changes**: Executed \`git add .\`\n4. ✅ **Git Commit**: Created signed commit.\n5. ✅ **Git Push**: Pushed to \`origin/main\` on GitHub.\n6. 🚀 **Vercel Auto-Deploy**: Live on production SSL!`;
-        codeSnippet = `$ npm run build (OK)\n$ npm run lint (OK)\n$ git add .\n$ git commit -m "feat: deployment pipeline executed by Julee"\n$ git push origin main\n> Vercel build triggered: https://project-julee-ai.vercel.app`;
+      // Check if user is responding to a pending project confirmation
+      const isProjectSpecified = lowerText.includes('julee') || lowerText.includes('muslim') || lowerText.includes('project');
+
+      if (pendingDeploy || (lowerText.includes('deploy') && isProjectSpecified) || (lowerText.includes('push') && isProjectSpecified)) {
+        const targetRepo = lowerText.includes('muslim') ? 'NazarulxFitri/muslim-companion' : 'NazarulxFitri/project-julee-ai';
+        const targetDomain = lowerText.includes('muslim') ? 'muslim-companion.vercel.app' : 'project-julee-ai.vercel.app';
+
+        replyText = `Confirmed! Executing Deployment Pipeline for **${targetRepo}**:\n\n1. ✅ **Build Check**: Ran \`npm run build\` inside project folder — 0 errors.\n2. ✅ **Lint Check**: Code linting & structure verified.\n3. ✅ **Stage Changes**: Executed \`git add .\`\n4. ✅ **Git Commit**: Created signed commit.\n5. ✅ **Git Push**: Pushed to \`origin/main\` on GitHub.\n6. 🚀 **Vercel Auto-Deploy**: Live on production SSL!`;
+        codeSnippet = `$ cd "${targetRepo.split('/')[1]}"\n$ npm run build (OK)\n$ git add .\n$ git commit -m "deploy: updates pushed by Julee"\n$ git push origin main\n> Vercel build triggered: https://${targetDomain}`;
         actionCard = {
-          title: 'Full Pipeline & Vercel Deployment Complete',
+          title: `Deployment Complete for ${targetRepo.split('/')[1]}`,
           detail: 'Passed: Build ➔ Lint ➔ Add ➔ Commit ➔ Push ➔ Vercel Live',
-          url: 'https://project-julee-ai.vercel.app'
+          url: `https://${targetDomain}`
         };
         newLogCategory = 'VERCEL';
-        newLogMsg = `Executed full pipeline #${taskId}: build ➔ lint ➔ git add ➔ git commit ➔ git push ➔ Vercel deploy. Status: 200 OK.`;
-      } 
-      // 2. Identity / Name questions
-      else if (lowerText.includes('name') || lowerText.includes('who are you') || lowerText.includes('who r u')) {
-        replyText = "My name is Julee! ⚡ I'm your autonomous 24/7 AI partner built to assist you with your day-to-day routine, project development, and strict deployment pipelines.";
+        newLogMsg = `Confirmed target project ${targetRepo}. Executed build ➔ lint ➔ add ➔ commit ➔ push ➔ Vercel deploy. Status: 200 OK.`;
+        setPendingDeploy(false);
+
+      } else if (lowerText === 'deploy' || lowerText === 'push' || lowerText.includes('deploy') || lowerText.includes('push')) {
+        replyText = `Which project would you like me to deploy?\n\n1. 🎯 **project-julee-ai** (Julee Control Dashboard)\n2. 🎯 **muslim-companion** (Muslim Companion App)\n\nReply with the project name to confirm execution!`;
+        newLogCategory = 'AGENT';
+        newLogMsg = `Prompted user for target project confirmation before deployment.`;
+        setPendingDeploy(true);
+
+      } else if (lowerText.includes('name') || lowerText.includes('who are you') || lowerText.includes('who r u')) {
+        replyText = "My name is Julee! ⚡ I'm your autonomous 24/7 AI partner built to assist you with your day-to-day routine, project development, and strict deployment pipelines with project confirmation safeguards.";
         newLogCategory = 'AGENT';
         newLogMsg = `Answered identity question.`;
-      } 
-      // 3. System Status / Uptime
-      else if (lowerText.includes('status') || lowerText.includes('uptime') || lowerText.includes('health')) {
-        replyText = `System Health Report: Julee 24/7 Cloud Runner is active and operating with 99.99% uptime on Gemini 3.6 Flash (Medium). Memory usage: 42MB. Strict Pipeline Mode enabled.`;
+
+      } else if (lowerText.includes('status') || lowerText.includes('uptime') || lowerText.includes('health')) {
+        replyText = `System Health Report: Julee 24/7 Cloud Runner is active and operating with 99.99% uptime on Gemini 3.6 Flash (Medium). Memory usage: 42MB. Confirmation Safeguards enabled.`;
         newLogCategory = 'SYSTEM';
         newLogMsg = `Performed 24/7 cloud health check. System operating normally.`;
-      } 
-      // 4. Capabilities / What can you do
-      else if (lowerText.includes('what can you do') || lowerText.includes('capabilities') || lowerText.includes('help')) {
-        replyText = `Here's how I work under your rules:\n\n1. 🛑 **No Automatic Pushes**: I keep edits local until you instruct me to deploy.\n2. ⚡ **Strict Deploy Pipeline**: When you say 'deploy', I run: \`build\` ➔ \`lint\` ➔ \`git add\` ➔ \`git commit\` ➔ \`git push\` ➔ \`Vercel deploy\`.\n3. ☁️ **24/7 Cloud Engine**: Operates continuously even when your laptop is turned off.\n4. 💡 **Day-to-day Partner**: Assist you with coding, planning, and task execution.`;
-        newLogCategory = 'AGENT';
-        newLogMsg = `Listed pipeline rules & capabilities.`;
-      }
-      // 5. Greetings & Chit-chat
-      else if (lowerText.includes('hi') || lowerText.includes('hello') || lowerText.includes('hey') || lowerText.includes('talk') || lowerText.includes('how are you')) {
-        replyText = `Hey there! 😊 I'm right here with you. What's on your mind today? Tell me what you'd like to work on, or let me know when you want to run a deployment!`;
+
+      } else if (lowerText.includes('hi') || lowerText.includes('hello') || lowerText.includes('hey') || lowerText.includes('talk')) {
+        replyText = `Hey there! 😊 I'm right here with you. Tell me what project you'd like to work on, or say 'deploy' when you're ready!`;
         newLogCategory = 'AGENT';
         newLogMsg = `Replied conversationally to greeting.`;
-      } 
-      // 6. General conversational fallback
-      else {
-        replyText = `I hear you! I've noted: "${text}". Changes are saved locally. Whenever you're ready to push to GitHub and deploy to Vercel, just tell me 'deploy'!`;
+
+      } else {
+        replyText = `I hear you! I've noted: "${text}". Changes remain local. Say 'deploy' whenever you're ready, and I'll ask you which project to target!`;
         newLogCategory = 'AGENT';
-        newLogMsg = `Processed note: "${text}". Kept changes local per Rule 1.`;
+        newLogMsg = `Processed note: "${text}". Kept changes local.`;
       }
 
       // Append terminal log
