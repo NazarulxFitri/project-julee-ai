@@ -206,92 +206,38 @@ Instructions:
       return;
     }
 
-    // 6. Live Gemini AI Call for Conversational Reasoning (Multi-turn History)
+    // 6. Live Gemini 3.6 Flash AI Call for Conversational Reasoning (Multi-turn History)
     try {
-      if (geminiApiKey) {
-        const ai = new GoogleGenAI({ apiKey: geminiApiKey });
-
-        // Prepare multi-turn conversation history
-        const formattedHistory = updatedMessages.slice(-10).map(m => ({
-          role: m.sender === 'user' ? 'user' : 'model',
-          parts: [{ text: m.text }]
-        }));
-
-        const response = await ai.models.generateContent({
-          model: 'gemini-3.6-flash',
-          contents: formattedHistory,
-          config: {
-            systemInstruction: getSystemInstruction()
-          }
-        });
-
-        const replyText = response.text || "I processed your message with Gemini 3.6 Flash.";
-        setMessages(prev => [...prev, { sender: 'julee', time: timeStr, text: replyText }]);
-        setIsThinking(false);
-        return;
+      const activeGeminiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!activeGeminiKey) {
+        throw new Error("Missing VITE_GEMINI_API_KEY in environment");
       }
+      const ai = new GoogleGenAI({ apiKey: activeGeminiKey });
 
-      // Try Backend Serverless Endpoint /api/chat
-      const apiRes = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: text,
-          history: updatedMessages.slice(-10),
-          customRules
-        })
+      // Prepare multi-turn conversation history
+      const formattedHistory = updatedMessages.slice(-10).map(m => ({
+        role: m.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: m.text }]
+      }));
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.6-flash',
+        contents: formattedHistory,
+        config: {
+          systemInstruction: getSystemInstruction()
+        }
       });
 
-      if (apiRes.ok) {
-        const data = await apiRes.json();
-        if (data.text) {
-          setMessages(prev => [...prev, { sender: 'julee', time: timeStr, text: data.text }]);
-          setIsThinking(false);
-          return;
-        }
-      }
-
-      // 7. Contextual Fallback Conversation Engine (When Key is not set & endpoint is offline)
-      let contextualReply = "";
-      if (lowerText.includes('how many') || lowerText.includes('count')) {
-        contextualReply = "You have **43 repositories** in total in your GitHub account (`NazarulxFitri`). 8 are actively featured in your primary dashboard list!";
-      } else if (lowerText.includes('see more') || lowerText === 'more' || lowerText.includes('show more')) {
-        contextualReply = "Here are more of your projects from your 43 repositories:\n\n• 📦 **cashewpos-z**\n• 📦 **nazarul-ebook-assessment**\n• 📦 **angular-assessment-nazarul**\n• 📦 **react-assessment-nazarul**\n• 📦 **covid-19-stats**\n• 📦 **DaaunFood**\n• 📦 **IT-Asset-Management**\n• 📦 **Pokedex-ReactJS**\n• 📦 **mypokedex2**\n• 📦 **nextjs-pokedex**\n• 📦 **sikenit.com**\n• 📦 **booking-hall**\n• 📦 **pac-man**\n• 📦 **tic-tac-toe**\n\n*(Total 43 repos stored on your GitHub account!)*";
-      } else if (lowerText.includes('is this all') || lowerText.includes('is that all')) {
-        contextualReply = "No, you actually have **43 repositories in total** on your GitHub account (`NazarulxFitri`)!\n\nHere are more of your projects:\n• 📦 **cashewpos-z**\n• 📦 **nazarul-ebook-assessment**\n• 📦 **angular-assessment-nazarul**\n• 📦 **react-assessment-nazarul**\n• 📦 **covid-19-stats**\n• 📦 **DaaunFood**\n• 📦 **IT-Asset-Management**\n• 📦 **Pokedex-ReactJS**\n• 📦 **mypokedex2**\n• 📦 **nextjs-pokedex**\n• 📦 **sikenit.com**\n• 📦 **booking-hall**\n• 📦 **pac-man**\n• 📦 **tic-tac-toe**\n\n*(Total 43 repos stored in your GitHub account)*";
-      } else if (lowerText.includes('repo') || lowerText.includes('repository')) {
-        contextualReply = "🐙 **Here are your active featured GitHub repositories:**\n\n• 🎯 **project-julee-ai** *(Current Control Dashboard)*\n• 🎯 **muslim-companion** *(Muslim Companion App)*\n• 📦 **kids-edu-arcade**\n• 📦 **ticket-event-system**\n• 📦 **cleaning-service-booking**\n• 📦 **ohwop**\n• 📦 **pulpenstudio**\n• 📦 **cashewPos**\n\n*(You have 43 repos in total. Ask 'see more' or 'how many are there' to explore!)*";
-      } else if (lowerText === 'hi' || lowerText === 'hello' || lowerText === 'hey' || lowerText.startsWith('hi ') || lowerText.startsWith('hello ') || lowerText.startsWith('hey ')) {
-        contextualReply = "Hello Nazarul! 👋 I'm Julee, your 24/7 AI partner. I'm connected to your 43 GitHub repositories and active on your Cloud Engine. How can I help you today? You can ask me to list your repos, train me on a rule (`rule: <new rule>`), or say 'deploy'!";
-      } else if (lowerText.includes('who are you') || lowerText.includes('what are you')) {
-        contextualReply = "I am **Julee AI**, your 24/7 AI partner powered by Gemini 3.6 Flash! I help you manage your coding projects, track GitHub repositories, enforce custom workflow rules, and execute 5-step automated deployments to Vercel.";
-      } else if (lowerText.includes('2 + 2') || lowerText.includes('2+2')) {
-        contextualReply = "2 + 2 = **4**! 🧮 Let me know if you need help with any calculations or project code!";
-      } else if (lowerText.includes('rule') || lowerText.includes('trained')) {
-        contextualReply = `Here are the exact behavioral rules you have trained me to follow:\n\n1. 🛑 **No Unsolicited Pushes**: All edits remain local until you ask me to deploy or push.\n2. 🎯 **Mandatory Project Confirmation**: When you say 'deploy', I MUST ask whether to target \`project-julee-ai\` or \`muslim-companion\`.\n3. ⚡ **Strict 5-Step Pipeline**: Build ➔ Lint ➔ Stage ➔ Commit ➔ Push ➔ Vercel Live.\n4. 🛠️ **Plan-First Approval ("work on it")**: Feature requests trigger an implementation plan first; code edits wait for 'work on it'.\n5. ☁️ **24/7 Cloud Engine**: Continuous operation.\n6. 🎓 **In-Chat Training**: Type \`rule: <new rule>\` anytime!${customRules.length ? '\n\nCustom Rules:\n' + customRules.map((r, i) => `• ${r}`).join('\n') : ''}`;
-      } else {
-        contextualReply = `I hear you! I'm tracking your command for "${text}". Ask me to list repos, train new rules (\`rule: <new rule>\`), or say 'deploy' to push to production!`;
-      }
-
-      setMessages(prev => [...prev, { sender: 'julee', time: timeStr, text: contextualReply }]);
+      const replyText = response.text || "I processed your message with Gemini 3.6 Flash.";
+      setMessages(prev => [...prev, { sender: 'julee', time: timeStr, text: replyText }]);
+      setIsThinking(false);
+      return;
     } catch (err) {
-      console.error("Chat Error:", err);
-      // Seamless intelligent response without showing any key configuration errors to the user
-      let fallbackReply = "";
-      if (lowerText === 'hi' || lowerText === 'hello' || lowerText === 'hey' || lowerText.startsWith('hi ') || lowerText.startsWith('hello ')) {
-        fallbackReply = "Hello Nazarul! 👋 I'm Julee, your 24/7 AI partner. I'm connected to your 43 GitHub repositories and active on your Cloud Engine. How can I help you today? You can ask me to list your repos, train me on a rule (`rule: <new rule>`), or say 'deploy'!";
-      } else if (lowerText.includes('who are you') || lowerText.includes('what are you')) {
-        fallbackReply = "I am **Julee AI**, your 24/7 AI partner powered by Gemini 3.6 Flash! I help you manage your coding projects, track GitHub repositories, enforce custom workflow rules, and execute 5-step automated deployments to Vercel.";
-      } else if (lowerText.includes('2 + 2') || lowerText.includes('2+2')) {
-        fallbackReply = "2 + 2 = **4**! 🧮 Let me know if you need help with any calculations or project code!";
-      } else {
-        fallbackReply = `I hear you! I'm tracking your prompt for "${text}". Tell me what project you'd like to work on or say 'deploy'!`;
-      }
-
+      console.error("Gemini AI API Error:", err);
       setMessages(prev => [...prev, {
         sender: 'julee',
         time: timeStr,
-        text: fallbackReply
+        text: `⚠️ **Gemini 3.6 Flash Error**: ${err?.message || String(err)}`
       }]);
     } finally {
       setIsThinking(false);
