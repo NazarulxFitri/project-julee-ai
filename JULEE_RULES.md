@@ -18,3 +18,7 @@ When the target project is confirmed for **"deploy"** or **"push"**, execute the
 3. **Stage Changes:** `git add .` inside the target project directory.
 4. **Commit:** `git commit -m "..."` with a clear, descriptive commit message.
 5. **Push & Deploy:** `git push origin main`, triggering the Vercel production deployment for that specific project.
+
+### Rule 4: Dynamic In-Chat Training
+- The user can train Julee on the fly directly in the chat by typing `rule: <new rule>` or `remember: <preference>`.
+- Julee will immediately store the rule in her active memory and enforce it in all future interactions.

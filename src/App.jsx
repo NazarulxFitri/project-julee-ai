@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import ChatView from './components/ChatView';
 import { GoogleGenAI } from '@google/genai';
@@ -7,6 +7,12 @@ export default function App() {
   const [isThinking, setIsThinking] = useState(false);
   const [pendingDeploy, setPendingDeploy] = useState(false);
 
+  // Custom trained rules state (persisted in localStorage)
+  const [customRules, setCustomRules] = useState(() => {
+    const saved = localStorage.getItem('JULEE_CUSTOM_RULES');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const builtInGeminiKey = import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('JULEE_GEMINI_API_KEY') || '';
 
   // Initial messages from Julee
@@ -14,10 +20,10 @@ export default function App() {
     {
       sender: 'julee',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      text: "Hello! I'm Julee, your 24/7 AI partner powered by Gemini 3.6 Flash. I'm ready to answer any question, help with daily work, or run deployment pipelines!",
+      text: "Hello! I'm Julee, your 24/7 AI partner. I am trained with your deployment pipeline rules, and you can train me with NEW rules directly in this chat anytime by typing `rule: <your rule>`!",
       actionCard: {
-        title: 'Gemini 3.6 Flash Engine Active',
-        detail: 'Dynamic AI reasoning enabled. Asks confirmation before running deployments.',
+        title: 'In-Chat Training Active',
+        detail: 'Type "rule: <new rule>" to teach Julee new rules instantly.',
         url: 'https://project-julee-ai.vercel.app'
       }
     }
@@ -32,9 +38,29 @@ export default function App() {
     setMessages(prev => [...prev, userMsg]);
     setIsThinking(true);
 
+    // 1. Dynamic In-Chat Training Handler (Rule: ...)
+    if (lowerText.startsWith('rule:') || lowerText.startsWith('remember:')) {
+      const newRuleText = text.replace(/^(rule:|remember:)/i, '').trim();
+      if (newRuleText) {
+        const updatedRules = [...customRules, newRuleText];
+        setCustomRules(updatedRules);
+        localStorage.setItem('JULEE_CUSTOM_RULES', JSON.stringify(updatedRules));
+
+        setTimeout(() => {
+          setMessages(prev => [...prev, {
+            sender: 'julee',
+            time: timeStr,
+            text: `🎓 **New Rule Trained & Saved!**\n\nI have locked this rule into my active memory:\n> "${newRuleText}"\n\nI will follow this rule in all future interactions!`
+          }]);
+          setIsThinking(false);
+        }, 500);
+        return;
+      }
+    }
+
     const isProjectSpecified = lowerText.includes('julee') || lowerText.includes('muslim') || lowerText.includes('project');
 
-    // 1. Trained Rule: Deployment Execution
+    // 2. Trained Rule: Deployment Execution
     if (pendingDeploy || (lowerText.includes('deploy') && isProjectSpecified) || (lowerText.includes('push') && isProjectSpecified)) {
       const targetRepo = lowerText.includes('muslim') ? 'NazarulxFitri/muslim-companion' : 'NazarulxFitri/project-julee-ai';
       const targetDomain = lowerText.includes('muslim') ? 'muslim-companion.vercel.app' : 'project-julee-ai.vercel.app';
@@ -58,7 +84,7 @@ export default function App() {
       return;
     }
 
-    // 2. Trained Rule: Mandatory Project Confirmation before Deploy
+    // 3. Trained Rule: Mandatory Project Confirmation before Deploy
     if (lowerText === 'deploy' || lowerText === 'push' || (lowerText.includes('deploy') && !isProjectSpecified)) {
       setTimeout(() => {
         setMessages(prev => [...prev, {
@@ -72,20 +98,26 @@ export default function App() {
       return;
     }
 
-    // 3. Trained Rules Inquiry
+    // 4. Trained Rules Inquiry
     if (lowerText.includes('rule') || lowerText.includes('trained') || lowerText.includes('training')) {
       setTimeout(() => {
+        let rulesMsg = `Here are the exact behavioral rules you have trained me to follow:\n\n1. 🛑 **No Unsolicited Pushes**: I keep code changes local until you explicitly ask me to push or deploy.\n2. 🎯 **Mandatory Project Confirmation**: When you say 'deploy', I MUST ask you to confirm whether you want to target \`project-julee-ai\` or \`muslim-companion\`.\n3. ⚡ **Strict 5-Step Deployment Pipeline**: When confirmed, I run: \`build\` ➔ \`lint\` ➔ \`git add\` ➔ \`git commit\` ➔ \`git push\` ➔ \`Vercel deploy\`.\n4. ☁️ **24/7 Cloud Engine**: Operates continuously even when your laptop is turned off.\n5. 🎓 **In-Chat Training**: You can type \`rule: <new rule>\` directly in chat to add new rules anytime!`;
+
+        if (customRules.length > 0) {
+          rulesMsg += `\n\n### 📌 Custom Rules You Trained Me In Chat:\n` + customRules.map((r, idx) => `• **Custom Rule ${idx + 1}**: ${r}`).join('\n');
+        }
+
         setMessages(prev => [...prev, {
           sender: 'julee',
           time: timeStr,
-          text: `Here are the exact behavioral rules you have trained me to follow:\n\n1. 🛑 **No Unsolicited Pushes**: I keep code changes local until you explicitly ask me to push or deploy.\n2. 🎯 **Mandatory Project Confirmation**: When you say 'deploy', I MUST ask you to confirm whether you want to target \`project-julee-ai\` or \`muslim-companion\`.\n3. ⚡ **Strict 5-Step Deployment Pipeline**: When confirmed, I run: \`build\` ➔ \`lint\` ➔ \`git add\` ➔ \`git commit\` ➔ \`git push\` ➔ \`Vercel deploy\`.\n4. ☁️ **24/7 Cloud Engine**: Operates continuously even when your laptop is turned off.`
+          text: rulesMsg
         }]);
         setIsThinking(false);
       }, 600);
       return;
     }
 
-    // 4. Running / Active Status Inquiry
+    // 5. Running / Active Status Inquiry
     if (lowerText.includes('running') || lowerText.includes('doing') || lowerText.includes('run anything')) {
       setTimeout(() => {
         setMessages(prev => [...prev, {
@@ -98,10 +130,9 @@ export default function App() {
       return;
     }
 
-    // 5. Math / Calculation Evaluation
+    // 6. Math / Calculation Evaluation
     if (/^[0-9+\-*/^().\s]+$/.test(lowerText) && lowerText.length > 1) {
       try {
-        // Simple evaluation for expressions like 2 + 2
         const sanitized = lowerText.replace(/[^0-9+\-*/().]/g, '');
         const mathResult = Function(`'use strict'; return (${sanitized})`)();
         setTimeout(() => {
@@ -113,12 +144,10 @@ export default function App() {
           setIsThinking(false);
         }, 500);
         return;
-      } catch (e) {
-        // Fallback to AI
-      }
+      } catch (e) {}
     }
 
-    // 6. Real API Call to Gemini API / Server Endpoint
+    // 7. Dynamic Gemini API Call
     try {
       if (builtInGeminiKey) {
         const ai = new GoogleGenAI({ apiKey: builtInGeminiKey });
@@ -126,13 +155,12 @@ export default function App() {
           model: 'gemini-2.5-flash',
           contents: text,
           config: {
-            systemInstruction: "You are Julee AI, a 24/7 personal AI partner created for Nazarul. You are powered by Gemini 3.6 Flash. Be intelligent, concise, natural, and helpful."
+            systemInstruction: `You are Julee AI, a 24/7 personal AI partner created for Nazarul. You are powered by Gemini 3.6 Flash. Be intelligent, concise, natural, and helpful.\nCustom rules trained by user:\n${customRules.join('\n')}`
           }
         });
         const replyText = response.text || "I processed your question with Gemini 3.6 Flash.";
         setMessages(prev => [...prev, { sender: 'julee', time: timeStr, text: replyText }]);
       } else {
-        // Try serverless API endpoint (/api/chat)
         const apiRes = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -148,8 +176,7 @@ export default function App() {
           }
         }
 
-        // Natural fallback answer
-        const fallbackAns = `I hear you! You asked: "${text}". I am your 24/7 AI partner powered by Gemini 3.6 Flash. Tell me what you'd like to work on or deploy next!`;
+        const fallbackAns = `I hear you! You asked: "${text}". I am your 24/7 AI partner powered by Gemini 3.6 Flash. Tell me what you'd like to work on, train me on a new rule (by typing \`rule: <new rule>\`), or say 'deploy'!`;
         setMessages(prev => [...prev, { sender: 'julee', time: timeStr, text: fallbackAns }]);
       }
     } catch (err) {
